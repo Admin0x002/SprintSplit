@@ -4,17 +4,23 @@
 ; ORDINAL (2 and 3), so the ordinals below must match the system DLL exactly.
 ; Anything missing here makes the game fail to start with "entry point not
 ; found", so keep the whole table.
+;
+; Each export is an alias: the code defines the entry points under private
+; ss_* names (see src/xinput_proxy.cpp), because xinput.h already declares the
+; system names and newer Windows SDKs declare them with an exception
+; specification that a plain definition cannot match (MSVC C2382).  The names
+; on the left of '=' are what the game (and any other importer) sees.
 LIBRARY xinput1_4
 
 EXPORTS
-    XInputGetState              @2
-    XInputSetState              @3
-    XInputGetCapabilities       @4
-    XInputEnable                @5
-    XInputGetBatteryInformation @7
-    XInputGetKeystroke          @8
-    XInputGetAudioDeviceIds     @10
-    XInputGetStateEx            @100 NONAME
-    XInputWaitForGuideButton    @101 NONAME
-    XInputCancelGuideButtonWait @102 NONAME
-    XInputPowerOffController    @103 NONAME
+    XInputGetState              = ss_XInputGetState              @2
+    XInputSetState              = ss_XInputSetState              @3
+    XInputGetCapabilities       = ss_XInputGetCapabilities       @4
+    XInputEnable                = ss_XInputEnable                @5
+    XInputGetBatteryInformation = ss_XInputGetBatteryInformation @7
+    XInputGetKeystroke          = ss_XInputGetKeystroke          @8
+    XInputGetAudioDeviceIds     = ss_XInputGetAudioDeviceIds     @10
+    XInputGetStateEx            = ss_XInputGetStateEx            @100 NONAME
+    XInputWaitForGuideButton    = ss_XInputWaitForGuideButton    @101 NONAME
+    XInputCancelGuideButtonWait = ss_XInputCancelGuideButtonWait @102 NONAME
+    XInputPowerOffController    = ss_XInputPowerOffController    @103 NONAME

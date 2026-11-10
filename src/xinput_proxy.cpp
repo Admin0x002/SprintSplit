@@ -230,47 +230,53 @@ DWORD WINAPI GetStateCommon(DWORD index, XINPUT_STATE* state, bool extended) {
 
 }  // namespace
 
-extern "C" DWORD WINAPI XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState) {
+// The exported entry points are implemented under private ss_* names and the
+// public names are attached in src/proxy.def.  The system names cannot be
+// defined directly here: xinput.h already declares them, and recent Windows
+// SDKs (10.0.26100 and later) declare them with an exception specification
+// that a plain definition cannot match, i.e. MSVC rejects it with
+// "C2382: redefinition; different exception specifications".
+extern "C" DWORD WINAPI ss_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState) {
     return GetStateCommon(dwUserIndex, pState, false);
 }
 
-extern "C" DWORD WINAPI XInputGetStateEx(DWORD dwUserIndex, XINPUT_STATE* pState) {
+extern "C" DWORD WINAPI ss_XInputGetStateEx(DWORD dwUserIndex, XINPUT_STATE* pState) {
     return GetStateCommon(dwUserIndex, pState, true);
 }
 
-extern "C" DWORD WINAPI XInputSetState(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration) {
+extern "C" DWORD WINAPI ss_XInputSetState(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration) {
     EnsureInitialized();
     if (g_set_state == nullptr) return ERROR_DEVICE_NOT_CONNECTED;
     return g_set_state(dwUserIndex, pVibration);
 }
 
-extern "C" DWORD WINAPI XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags,
+extern "C" DWORD WINAPI ss_XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags,
                                               XINPUT_CAPABILITIES* pCapabilities) {
     EnsureInitialized();
     if (g_get_caps == nullptr) return ERROR_DEVICE_NOT_CONNECTED;
     return g_get_caps(dwUserIndex, dwFlags, pCapabilities);
 }
 
-extern "C" void WINAPI XInputEnable(BOOL enable) {
+extern "C" void WINAPI ss_XInputEnable(BOOL enable) {
     EnsureInitialized();
     if (g_enable != nullptr) g_enable(enable);
 }
 
-extern "C" DWORD WINAPI XInputGetBatteryInformation(
+extern "C" DWORD WINAPI ss_XInputGetBatteryInformation(
     DWORD dwUserIndex, BYTE devType, XINPUT_BATTERY_INFORMATION* pBatteryInformation) {
     EnsureInitialized();
     if (g_get_battery == nullptr) return ERROR_DEVICE_NOT_CONNECTED;
     return g_get_battery(dwUserIndex, devType, pBatteryInformation);
 }
 
-extern "C" DWORD WINAPI XInputGetKeystroke(DWORD dwUserIndex, DWORD dwReserved,
+extern "C" DWORD WINAPI ss_XInputGetKeystroke(DWORD dwUserIndex, DWORD dwReserved,
                                            XINPUT_KEYSTROKE* pKeystroke) {
     EnsureInitialized();
     if (g_get_keystroke == nullptr) return ERROR_DEVICE_NOT_CONNECTED;
     return g_get_keystroke(dwUserIndex, dwReserved, pKeystroke);
 }
 
-extern "C" DWORD WINAPI XInputGetAudioDeviceIds(DWORD dwUserIndex, LPWSTR pRenderDeviceId,
+extern "C" DWORD WINAPI ss_XInputGetAudioDeviceIds(DWORD dwUserIndex, LPWSTR pRenderDeviceId,
                                                 UINT* pRenderCount, LPWSTR pCaptureDeviceId,
                                                 UINT* pCaptureCount) {
     EnsureInitialized();
@@ -282,15 +288,15 @@ extern "C" DWORD WINAPI XInputGetAudioDeviceIds(DWORD dwUserIndex, LPWSTR pRende
 // Undocumented exports of XInput1_4.dll. ELDEN RING does not import them, but
 // they exist in the system DLL; keep the ordinal table complete so that other
 // modules which import them still load.
-extern "C" DWORD WINAPI XInputWaitForGuideButton(DWORD, DWORD, void*) {
+extern "C" DWORD WINAPI ss_XInputWaitForGuideButton(DWORD, DWORD, void*) {
     return ERROR_DEVICE_NOT_CONNECTED;
 }
 
-extern "C" DWORD WINAPI XInputCancelGuideButtonWait(DWORD) {
+extern "C" DWORD WINAPI ss_XInputCancelGuideButtonWait(DWORD) {
     return ERROR_DEVICE_NOT_CONNECTED;
 }
 
-extern "C" DWORD WINAPI XInputPowerOffController(DWORD) {
+extern "C" DWORD WINAPI ss_XInputPowerOffController(DWORD) {
     return ERROR_DEVICE_NOT_CONNECTED;
 }
 
