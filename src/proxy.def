@@ -1,0 +1,20 @@
+; SprintSplit export table.
+;
+; ELDEN RING imports XInputGetState and XInputSetState from XInput1_4.dll BY
+; ORDINAL (2 and 3), so the ordinals below must match the system DLL exactly.
+; Anything missing here makes the game fail to start with "entry point not
+; found", so keep the whole table.
+LIBRARY xinput1_4
+
+EXPORTS
+    XInputGetState              @2
+    XInputSetState              @3
+    XInputGetCapabilities       @4
+    XInputEnable                @5
+    XInputGetBatteryInformation @7
+    XInputGetKeystroke          @8
+    XInputGetAudioDeviceIds     @10
+    XInputGetStateEx            @100 NONAME
+    XInputWaitForGuideButton    @101 NONAME
+    XInputCancelGuideButtonWait @102 NONAME
+    XInputPowerOffController    @103 NONAME

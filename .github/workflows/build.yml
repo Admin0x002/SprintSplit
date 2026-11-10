@@ -1,0 +1,57 @@
+name: build-sprintsplit
+
+# 触发方式：push、PR，或者在 Actions 页面手动点 “Run workflow”
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Windows runner 自带 Visual Studio 2022（MSVC / Windows SDK），不需要额外装编译器
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build xinput1_4.dll with MSVC
+        shell: cmd
+        run: |
+          set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+          if not exist "%VSWHERE%" (
+            echo Cannot find vswhere.exe & exit /b 1
+          )
+          for /f "usebackq tokens=*" %%i in (`"%VSWHERE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "VSDIR=%%i"
+          if not defined VSDIR (
+            echo Cannot find a Visual C++ toolset & exit /b 1
+          )
+          call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat"
+          if not exist build mkdir build
+          cl /nologo /MT /O2 /std:c++17 /EHsc /W3 /D_CRT_SECURE_NO_WARNINGS ^
+             src\xinput_proxy.cpp src\config.cpp ^
+             /link /DLL /DEF:src\proxy.def /OUT:build\xinput1_4.dll
+          if not exist build\xinput1_4.dll exit /b 1
+
+      - name: Verify export ordinals (game imports #2/#3 by ordinal)
+        shell: pwsh
+        run: python tools/check_exports.py build/xinput1_4.dll
+
+      - name: Load test (arguments, forwarding, log)
+        shell: pwsh
+        run: python tools/selftest_dll.py build/xinput1_4.dll
+
+      - name: Show result
+        shell: pwsh
+        run: |
+          Get-Item build/xinput1_4.dll | Format-List Name, Length, LastWriteTime
+          Get-Content build\SprintSplit\SprintSplit.log -ErrorAction SilentlyContinue
+
+      - name: Upload DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: SprintSplit-xinput1_4
+          path: |
+            build/xinput1_4.dll
+            SprintSplit.ini
+          if-no-files-found: error
